@@ -12,7 +12,7 @@ use crate::{
 };
 use bincode::Options;
 use collectable::TryExtend;
-use rocksdb::{checkpoint::Checkpoint, BlockBasedOptions, Cache};
+use rocksdb::{checkpoint::Checkpoint, BlockBasedOptions, Cache, UniversalCompactOptions, DBCompactionStyle};
 use rocksdb::{
     properties, AsColumnFamilyRef, CStrLike, ColumnFamilyDescriptor, DBWithThreadMode, Error,
     ErrorKind, IteratorMode, MultiThreaded, OptimisticTransactionOptions, ReadOptions, Transaction,
@@ -1809,7 +1809,7 @@ pub fn base_db_options() -> DBOptions {
     // of shards, ie 2^10. Increase in case of lock contentions.
     opt.set_table_cache_num_shard_bits(10);
 
-    opt.set_compression_type(rocksdb::DBCompressionType::None);
+    opt.set_compression_type(rocksdb::DBCompressionType::Zstd);
 
     // Sui uses multiple RocksDB in a node, so total sizes of write buffers and WAL can be higher
     // than the limits below.
@@ -1931,8 +1931,13 @@ pub fn open_cf_opts<P: AsRef<Path>>(
     // resolves the issue.
     //
     // This is a no-op in non-simulator builds.
-    nondeterministic!({
-        let options = prepare_db_options(&path, db_options, opt_cfs);
+    let result = nondeterministic!({
+        let mut options = prepare_db_options(&path, db_options, opt_cfs);
+        let mut universal = UniversalCompactOptions::default();
+        options.set_compaction_style(DBCompactionStyle::Universal);
+        options.set_universal_compaction_options(&universal);
+        options.set_max_background_jobs(2);
+        //options.set_ratelimiter(100 * 1024 * 1024, 100_000, 10);
         let rocksdb = {
             rocksdb::DBWithThreadMode::<MultiThreaded>::open_cf_descriptors(
                 &options,
@@ -1949,7 +1954,8 @@ pub fn open_cf_opts<P: AsRef<Path>>(
                 db_path: PathBuf::from(path),
             },
         )))
-    })
+    });
+    result
 }
 
 /// Opens a database with options, and a number of column families with individual options that are created if they do not exist.
@@ -1963,7 +1969,14 @@ pub fn open_cf_opts_transactional<P: AsRef<Path>>(
     let path = path.as_ref();
     // See comment above for explanation of why nondeterministic is necessary here.
     nondeterministic!({
-        let options = prepare_db_options(&path, db_options, opt_cfs);
+        let mut options = prepare_db_options(&path, db_options, opt_cfs);
+        let mut universal = UniversalCompactOptions::default();
+        universal.set_min_merge_width(4);
+        universal.set_size_ratio(20);
+        options.set_compaction_style(DBCompactionStyle::Universal);
+        options.set_universal_compaction_options(&universal);
+        options.set_max_background_jobs(2);
+        //options.set_ratelimiter(100 * 1024 * 1024, 100_000, 10);
         let rocksdb = rocksdb::OptimisticTransactionDB::<MultiThreaded>::open_cf_descriptors(
             &options,
             path,
