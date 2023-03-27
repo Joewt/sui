@@ -45,7 +45,7 @@ export function FunctionExecutionResult({
         >
             <div className="space-y-4 text-bodySmall">
                 <LinkGroup
-                    title="Transaction ID"
+                    title="Digest"
                     links={
                         result
                             ? [

@@ -42,7 +42,7 @@ export function Activity({ initialLimit, disablePagination }: Props) {
             <TabGroup size="lg">
                 <div className="relative">
                     <TabList>
-                        <Tab>Transactions</Tab>
+                        <Tab>Transaction Blocks</Tab>
                         <Tab>Checkpoints</Tab>
                     </TabList>
 

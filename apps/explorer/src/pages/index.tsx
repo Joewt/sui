@@ -14,7 +14,6 @@ import CheckpointDetail from './checkpoints/CheckpointDetail';
 import EpochDetail from './epochs/EpochDetail';
 import Home from './home/Home';
 import { ObjectResult } from './object-result/ObjectResult';
-import SearchError from './searcherror/SearchError';
 import TransactionResult from './transaction-result/TransactionResult';
 import Transactions from './transactions/Transactions';
 import { ValidatorDetails } from './validator/ValidatorDetails';
@@ -44,7 +43,6 @@ export const router = sentryCreateBrowserRouter([
             { path: 'address/:id', element: <AddressResult /> },
             { path: 'validators', element: <ValidatorPageResult /> },
             { path: 'validator/:id', element: <ValidatorDetails /> },
-            { path: 'error/:category/:id', element: <SearchError /> },
         ],
     },
     // Support legacy plural routes:

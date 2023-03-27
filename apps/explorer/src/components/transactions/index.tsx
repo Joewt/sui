@@ -83,7 +83,7 @@ export function Transactions({
                     rowCount={initialLimit}
                     rowHeight="16px"
                     colHeadings={[
-                        'Transaction ID',
+                        'Digest',
                         'Sender',
                         'Amount',
                         'Gas',
