@@ -35,6 +35,8 @@ use crate::{
 
 use super::types::*;
 
+sui_macros::checked_arithmetic! {
+
 /// Maintains all runtime state specific to programmable transactions
 pub struct ExecutionContext<'vm, 'state, 'a, 'b, E: fmt::Debug, S: StorageView<E>> {
     /// The protocol config
@@ -976,4 +978,6 @@ unsafe fn create_written_object<E: fmt::Debug, S: StorageView<E>>(
         contents,
         protocol_config,
     )
+}
+
 }
